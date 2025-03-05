@@ -3,7 +3,7 @@ pub mod json;
 pub mod parser;
 pub mod value;
 
-pub use parser::parse;
+pub use parser::{parse, parse_str};
 pub use value::{List, Object, Value};
 
 use std::collections::HashMap;
