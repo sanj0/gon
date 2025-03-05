@@ -11,6 +11,9 @@ use std::collections::HashMap;
 use klex::{Loc, Token};
 use thiserror::Error;
 
+#[cfg(feature = "preserve_order")]
+type MapT = indexmap::IndexMap<String, Value>;
+#[cfg(not(feature = "preserve_order"))]
 type MapT = HashMap<String, Value>;
 
 #[derive(Debug, Error, PartialEq)]
