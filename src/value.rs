@@ -17,3 +17,19 @@ pub struct Object {
 pub struct List {
     inner: Vec<Value>,
 }
+
+impl Value {
+    pub fn as_f64(&self) -> Option<f64> {
+        let Self::Num(num) = self else {
+            return None;
+        };
+        num.parse().ok()
+    }
+
+    pub fn as_i128(&self) -> Option<i128> {
+        let Self::Num(num) = self else {
+            return None;
+        };
+        num.parse().ok()
+    }
+}
