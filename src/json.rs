@@ -23,3 +23,19 @@ impl From<Value> for JsonValue {
         }
     }
 }
+
+impl From<JsonValue> for Value {
+    fn from(value: JsonValue) -> Self {
+        match value {
+            JsonValue::Null => Value::None,
+            JsonValue::Bool(b) => Value::Bool(b),
+            // FIXME
+            JsonValue::Number(n) => Value::Num(n.to_string()),
+            JsonValue::String(s) => Value::Str(s),
+            JsonValue::Array(xs) => Value::List(xs.into_iter().map(JsonValue::into).collect()),
+            JsonValue::Object(obj) => {
+                Value::Obj(obj.into_iter().map(|(k, v)| (k, v.into())).collect())
+            }
+        }
+    }
+}

@@ -23,9 +23,9 @@ pub struct List {
 /// Configures how a `Value` should be [`spell`]ed
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct SpellConfig {
-    indent_amount: usize,
-    indent_char: char,
-    trailing_commas: bool,
+    pub indent_amount: usize,
+    pub indent_char: char,
+    pub trailing_commas: bool,
 }
 
 impl Value {
@@ -52,20 +52,24 @@ impl Value {
             Self::Bool(b) => if *b { "true".into() } else { "false".into() },
             Self::Obj(m) => {
                 let mut spelling = String::from("{");
-                for (k, v) in m {
+                for (i, (k, v)) in m.iter().enumerate() {
                     spelling.push_str(k);
                     spelling.push(':');
                     spelling.push_str(&v.min_spell());
-                    spelling.push(',');
+                    if i != m.len() - 1 {
+                        spelling.push(',');
+                    }
                 }
                 spelling.push('}');
                 spelling
             }
             Self::List(xs) => {
                 let mut spelling = String::from("[");
-                for v in xs {
+                for (i, v) in xs.iter().enumerate() {
                     spelling.push_str(&v.min_spell());
-                    spelling.push(',');
+                    if i != xs.len() - 1 {
+                        spelling.push(',');
+                    }
                 }
                 spelling.push(']');
                 spelling
@@ -108,7 +112,7 @@ impl Value {
                 }
                 let oneline = xs.len() <= 5 && xs.iter().find(|v| matches!(v, Self::List(_) | Self::Obj(_))).is_none();
                 if oneline {
-                    write!(buf, "[ ")?;
+                    write!(buf, "[")?;
                 } else {
                     writeln!(buf, "[")?;
                 }
@@ -120,14 +124,20 @@ impl Value {
                         apply_indent(buf, new_indent, config)?;
                         x.spell0(buf, new_indent, config)?;
                     }
-                    if config.trailing_commas || i < xs.len() - 1 {
-                        write!(buf, ",")?;
-                    }
-                    if !oneline {
+                    if oneline {
+                        if i != xs.len() - 1 {
+                            write!(buf, ", ")?;
+                        }
+                    } else {
+                        if config.trailing_commas || i != xs.len() - 1 {
+                            write!(buf, ",")?;
+                        }
                         writeln!(buf, "")?;
                     }
                 }
-                apply_indent(buf, current_indent, config)?;
+                if !oneline {
+                    apply_indent(buf, current_indent, config)?;
+                }
                 write!(buf, "]")?;
             }
         }
