@@ -4,7 +4,7 @@ pub mod parser;
 pub mod value;
 
 pub use parser::{parse, parse_str};
-pub use value::{List, Object, Value};
+pub use value::{List, Object, Value, SpellConfig};
 
 use std::collections::HashMap;
 
