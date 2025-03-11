@@ -6,10 +6,9 @@ fn main() -> Result<(), String> {
         std::io::stdin().read_line(&mut input);
         let value_res = parse(input.trim().chars());
         match value_res {
-            Ok(Some(value)) => {
+            Ok(value) => {
                 println!("{}", value.min_spell());
             }
-            Ok(None) => (),
             Err(e) => eprintln!("{e}"),
         }
         input.clear();

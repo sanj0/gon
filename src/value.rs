@@ -53,7 +53,14 @@ impl Value {
             Self::Obj(m) => {
                 let mut spelling = String::from("{");
                 for (i, (k, v)) in m.iter().enumerate() {
+                    let key_needs_quotes = key_needs_quoting(k);
+                    if key_needs_quotes {
+                        spelling.push('"');
+                    }
                     spelling.push_str(k);
+                    if key_needs_quotes {
+                        spelling.push('"');
+                    }
                     spelling.push(':');
                     spelling.push_str(&v.min_spell());
                     if i != m.len() - 1 {
@@ -94,7 +101,11 @@ impl Value {
                 let new_indent = current_indent + config.indent_amount;
                 for (i, (k, v)) in obj.iter().enumerate() {
                     apply_indent(buf, new_indent, config)?;
-                    write!(buf, "{k}: ")?;
+                    if key_needs_quoting(k) {
+                        write!(buf, "{k}: ")?;
+                    } else {
+                        write!(buf, "\"{k}\": ")?;
+                    }
                     v.spell0(buf, new_indent, config)?;
                     if !config.trailing_commas && i == obj.len() - 1 {
                         writeln!(buf, "")?;
@@ -147,6 +158,14 @@ impl Value {
 
 fn apply_indent(buf: &mut String, amount: usize, config: &SpellConfig) -> std::fmt::Result {
     write!(buf, "{}", std::iter::repeat(config.indent_char).take(amount).collect::<String>())
+}
+
+fn key_needs_quoting(key: &str) -> bool {
+    let lexer_result = klex::Lexer::new(key, 0).lex();
+    match lexer_result {
+        Ok(tokens) => tokens.len() > 1,
+        _ => true,
+    }
 }
 
 impl Default for SpellConfig {

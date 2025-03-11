@@ -9,11 +9,11 @@ struct TokenIter {
     loc: Loc,
 }
 
-pub fn parse_str(src: &str) -> Result<Option<Value>, GonError> {
+pub fn parse_str(src: &str) -> Result<Value, GonError> {
     parse(src.chars())
 }
 
-pub fn parse<I: Iterator<Item = char>>(src: I) -> Result<Option<Value>, GonError> {
+pub fn parse<I: Iterator<Item = char>>(src: I) -> Result<Value, GonError> {
     let tokens = Lexer::from_iter(src, 0)
         .lex()
         .map_err(|e| GonError::LexerErr(e))?
@@ -31,25 +31,25 @@ pub fn parse<I: Iterator<Item = char>>(src: I) -> Result<Option<Value>, GonError
     }
 }
 
-fn next_value(tokens: &mut TokenIter) -> Result<Option<Value>, GonError> {
+fn next_value(tokens: &mut TokenIter) -> Result<Value, GonError> {
     let Some(first_token) = tokens.next() else {
-        return Ok(None);
+        return Err(GonError::NoValueErr);
     };
     match first_token.inner {
         Token::Sym(sym) => {
             let sym_lower = sym.to_lowercase();
             if sym_lower == "none" || sym_lower == "null" {
-                Ok(Some(Value::None))
+                Ok(Value::None)
             } else if sym_lower == "true" {
-                Ok(Some(Value::Bool(true)))
+                Ok(Value::Bool(true))
             } else if sym_lower == "false" {
-                Ok(Some(Value::Bool(false)))
+                Ok(Value::Bool(false))
             } else {
                 Err(GonError::InvalidValue(sym, first_token.loc))
             }
         }
-        Token::Str(string) => Ok(Some(Value::Str(string))),
-        Token::Num(num) => Ok(Some(Value::Num(num))),
+        Token::Str(string) => Ok(Value::Str(string)),
+        Token::Num(num) => Ok(Value::Num(num)),
         Token::LBrace => {
             let mut map = crate::MapT::new();
             let opening_loc = tokens.loc;
@@ -64,7 +64,7 @@ fn next_value(tokens: &mut TokenIter) -> Result<Option<Value>, GonError> {
                 map.insert(key, value);
                 consume_optional_comma(tokens);
             }
-            Ok(Some(Value::Obj(map)))
+            Ok(Value::Obj(map))
         }
         Token::LBrack => {
             let mut list = Vec::new();
@@ -74,13 +74,13 @@ fn next_value(tokens: &mut TokenIter) -> Result<Option<Value>, GonError> {
                     tokens.next();
                     break;
                 }
-                let Some(value) = next_value(tokens)? else {
+                let Ok(value) = next_value(tokens) else {
                     return Err(GonError::UnclosedDelimiter(']', opening_loc));
                 };
                 list.push(value);
                 consume_optional_comma(tokens);
             }
-            Ok(Some(Value::List(list)))
+            Ok(Value::List(list))
         }
         token => Err(GonError::UnexpectedToken(token, first_token.loc)),
     }
@@ -107,13 +107,15 @@ fn next_key_value_pair(tokens: &mut TokenIter) -> Result<Option<(String, Value)>
     let Some(token) = tokens.next().map(|t| t.inner) else {
         return Ok(None);
     };
-    let Token::Sym(key) = token else {
-        return Err(GonError::UnexpectedToken(token, tokens.loc));
+    let key = match token {
+        Token::Str(s) | Token::Num(s) | Token::Sym(s) => s,
+        Token::Comment(_) => return Err(GonError::UnexpectedToken(token, tokens.loc)),
+        otherwise => otherwise.spelling(),
     };
     let Some(Token::Colon) = tokens.next().map(|t| t.inner) else {
         return Err(GonError::MissingColon(key, tokens.loc));
     };
-    let Some(value) = next_value(tokens)? else {
+    let Ok(value) = next_value(tokens) else {
         return Err(GonError::MissingValue(key, tokens.loc));
     };
     Ok(Some((key, value)))
