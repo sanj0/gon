@@ -102,9 +102,9 @@ impl Value {
                 for (i, (k, v)) in obj.iter().enumerate() {
                     apply_indent(buf, new_indent, config)?;
                     if key_needs_quoting(k) {
-                        write!(buf, "{k}: ")?;
-                    } else {
                         write!(buf, "\"{k}\": ")?;
+                    } else {
+                        write!(buf, "{k}: ")?;
                     }
                     v.spell0(buf, new_indent, config)?;
                     if !config.trailing_commas && i == obj.len() - 1 {
