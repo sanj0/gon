@@ -1,7 +1,7 @@
 # General Object Notation
 
 GON is JSON but not quite. It requires no quotes around keys, allows trailing
-commas and multiline strings.
+commas but doesn't require any at all and supports multiline strings.
 
 # Format Example
 
@@ -13,9 +13,9 @@ commas and multiline strings.
        year: 1844,
        ratings: [
            {
-                from: "***REMOVED***",
-                rating: 5,
-                comment: "best book ever ...",
+                from: "***REMOVED***"
+                rating: 5
+                comment: "best book ever ..."
            }
        ],
    },
@@ -68,4 +68,3 @@ assume that Gon is subset of JSON]. Conversion can be done using
 1. Keys in objects cannot contain dashes, dollar signs and other characters that count as
    separators in klex. Maybe add a klex feature that allows dollar signs and
    dashes inside symbols
-2. Commas are not required in lists and objects – bug or feature?
