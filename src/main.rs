@@ -39,21 +39,19 @@ enum Verb {
     Into,
     /// Convert json input to gon
     From,
+    /// Verify the syntax of the given file
+    Verify,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     match args.verb {
         Verb::Min => {
-            let Some(value) = get_gon_input(args.file)? else {
-                return Ok(());
-            };
+            let value = get_gon_input(args.file)?;
             println!("{}", value.min_spell());
         },
         Verb::Fmt => {
-            let Some(value) = get_gon_input(args.file)? else {
-                return Ok(());
-            };
+            let value = get_gon_input(args.file)?;
             let spell_config = SpellConfig {
                 indent_amount: args.indent_width,
                 indent_char: args.indent_char,
@@ -62,9 +60,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             println!("{}", value.spell(spell_config)?);
         }
         Verb::Into => {
-            let Some(value) = get_gon_input(args.file)? else {
-                return Ok(());
-            };
+            let value = get_gon_input(args.file)?;
             println!("{}", serde_json::to_string_pretty(&serde_json::Value::from(value)).map_err(|e| Box::new(e))?);
         }
         Verb::From => {
@@ -75,6 +71,18 @@ fn main() -> Result<(), Box<dyn Error>> {
                 trailing_commas: args.trailing_commas,
             };
             println!("{}", Value::from(json).spell(spell_config)?);
+        }
+        Verb::Verify => {
+            match get_gon_input(args.file) {
+                Ok(value) => {
+                    println!("VALID");
+                    return Ok(());
+                }
+                Err(e) => {
+                    println!("INVALID");
+                    return Err(e);
+                }
+            }
         }
     }
     Ok(())
@@ -97,7 +105,7 @@ fn get_json_input(file: Option<PathBuf>) -> Result<JsonValue, Box<dyn Error>> {
     serde_json::from_str(&src).map_err(|e| e.into())
 }
 
-fn get_gon_input(file: Option<PathBuf>) -> Result<Option<Value>, Box<dyn Error>> {
+fn get_gon_input(file: Option<PathBuf>) -> Result<Value, Box<dyn Error>> {
     let src = get_src(file)?;
     parse_str(&src).map_err(|e| e.into())
 }
