@@ -25,6 +25,16 @@ struct Args {
     /// Only works with the `fmt` verb.
     #[arg(long, short, action)]
     trailing_commas: bool,
+    /// The maximum width to which string literals get wrapped.
+    /// This also squashes multiple spaces into a single one in every string. Use 0 to disable.
+    /// Only works with the `fmt` and `from` verbs.
+    #[arg(long, short, default_value_t = 0)]
+    max_width: usize,
+    /// Format in-place?
+    /// WARNING: Writes the formatted output directly into the old file. ABSOLUTELY NO WARRANTY!
+    /// Only works with `fmt` and `min`.
+    #[arg(long, short, action)]
+    in_place: bool,
     /// The input file. Leave empty for stdin.
     file: Option<PathBuf>,
 }
@@ -47,17 +57,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     match args.verb {
         Verb::Min => {
-            let value = get_gon_input(args.file)?;
-            println!("{}", value.min_spell());
+            let value = get_gon_input(args.file.as_ref().cloned())?;
+            print_or_write_to_file(&value.min_spell(), args.file)?;
         },
         Verb::Fmt => {
-            let value = get_gon_input(args.file)?;
+            let value = get_gon_input(args.file.as_ref().cloned())?;
             let spell_config = SpellConfig {
                 indent_amount: args.indent_width,
                 indent_char: args.indent_char,
                 trailing_commas: args.trailing_commas,
+                max_width: args.max_width,
             };
-            println!("{}", value.spell(spell_config)?);
+            print_or_write_to_file(&value.spell(spell_config)?, args.file)?;
         }
         Verb::Into => {
             let value = get_gon_input(args.file)?;
@@ -69,6 +80,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 indent_amount: args.indent_width,
                 indent_char: args.indent_char,
                 trailing_commas: args.trailing_commas,
+                max_width: args.max_width,
             };
             println!("{}", Value::from(json).spell(spell_config)?);
         }
@@ -86,6 +98,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     Ok(())
+}
+
+fn print_or_write_to_file(out: &str, file: Option<PathBuf>) -> Result<(), Box<dyn Error>> {
+    if let Some(file) = file {
+        Ok(std::fs::write(file, out)?)
+    } else {
+        println!("{out}");
+        Ok(())
+    }
 }
 
 fn get_src(file: Option<PathBuf>) -> Result<String, Box<dyn Error>> {
