@@ -26,6 +26,8 @@ pub struct SpellConfig {
     pub indent_amount: usize,
     pub indent_char: char,
     pub trailing_commas: bool,
+    /// Max width of string literals before they get wrapped.
+    pub max_width: usize,
 }
 
 impl Value {
@@ -93,7 +95,22 @@ impl Value {
     fn spell0(&self, buf: &mut String, current_indent: usize, config: &SpellConfig) -> std::fmt::Result {
         match self {
             Self::None => write!(buf, "None")?,
-            Self::Str(s) => write!(buf, "{}", klex::Token::Str(s.clone()).spelling())?,
+            Self::Str(s) => {
+                if config.max_width == 0 {
+                    write!(buf, "{}", klex::Token::Str(s.clone()).spelling())?;
+                } else {
+                    let raw = format!("{}", klex::Token::Str(s.clone()).spelling());
+                    let raw = squash_whitespace(&raw);
+                    let wrapped_lines = textwrap::wrap(&raw, textwrap::Options::new(config.max_width).subsequent_indent(&gen_indent(current_indent + config.indent_amount, config)));
+                    for (i, line) in wrapped_lines.iter().enumerate() {
+                        if i == wrapped_lines.len() - 1 {
+                            write!(buf, "{line}")?;
+                        } else {
+                            writeln!(buf, "{line}")?;
+                        }
+                    }
+                }
+            }
             Self::Num(s) => write!(buf, "{s}")?,
             Self::Bool(b) => write!(buf, "{b}")?,
             Self::Obj(obj) => {
@@ -156,8 +173,17 @@ impl Value {
     }
 }
 
+fn squash_whitespace(input: &str) -> String {
+    let re = regex::Regex::new(r"[ \t\r\n]{2,}").unwrap();
+    re.replace_all(input, " ").into_owned()
+}
+
 fn apply_indent(buf: &mut String, amount: usize, config: &SpellConfig) -> std::fmt::Result {
-    write!(buf, "{}", std::iter::repeat(config.indent_char).take(amount).collect::<String>())
+    write!(buf, "{}", gen_indent(amount, config))
+}
+
+fn gen_indent(amount: usize, config: &SpellConfig) -> String {
+    std::iter::repeat(config.indent_char).take(amount).collect::<String>()
 }
 
 fn key_needs_quoting(key: &str) -> bool {
@@ -174,6 +200,7 @@ impl Default for SpellConfig {
             indent_amount: 4,
             indent_char: ' ',
             trailing_commas: false,
+            max_width: 100,
         }
     }
 }
