@@ -52,7 +52,11 @@ impl Value {
     pub fn min_spell(&self) -> String {
         match self {
             Self::None => "None".into(),
-            Self::Str { s, raw: _ } => klex::Token::Str(s.into()).spelling(),
+            Self::Str { s, raw } => if *raw {
+                    format!("r{}", klex::Token::Str(s.into()).spelling())
+                } else {
+                    klex::Token::Str(s.into()).spelling()
+                }
             Self::Num(s) => s.into(),
             Self::Bool(b) => if *b { "true".into() } else { "false".into() },
             Self::Obj(m) => {
@@ -99,8 +103,10 @@ impl Value {
         match self {
             Self::None => write!(buf, "None")?,
             Self::Str { s, raw } => {
-                if config.max_width == 0 || *raw {
+                if config.max_width == 0 {
                     write!(buf, "{}", klex::Token::Str(s.clone()).spelling())?;
+                } else if *raw {
+                    write!(buf, "r{}", klex::Token::Str(s.clone()).spelling())?;
                 } else {
                     let mut raw_str = format!("{}", klex::Token::Str(s.clone()).spelling());
                     raw_str = squash_whitespace(&raw_str);
