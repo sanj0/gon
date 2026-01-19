@@ -3,7 +3,10 @@ use std::fmt::Write;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Value {
     None,
-    Str(String),
+    Str {
+        s: String,
+        raw: bool,
+    },
     Num(String),
     Bool(bool),
     Obj(crate::MapT),
@@ -49,7 +52,7 @@ impl Value {
     pub fn min_spell(&self) -> String {
         match self {
             Self::None => "None".into(),
-            Self::Str(s) => klex::Token::Str(s.into()).spelling(),
+            Self::Str { s, raw: _ } => klex::Token::Str(s.into()).spelling(),
             Self::Num(s) => s.into(),
             Self::Bool(b) => if *b { "true".into() } else { "false".into() },
             Self::Obj(m) => {
@@ -95,13 +98,13 @@ impl Value {
     fn spell0(&self, buf: &mut String, current_indent: usize, config: &SpellConfig) -> std::fmt::Result {
         match self {
             Self::None => write!(buf, "None")?,
-            Self::Str(s) => {
-                if config.max_width == 0 {
+            Self::Str { s, raw } => {
+                if config.max_width == 0 || *raw {
                     write!(buf, "{}", klex::Token::Str(s.clone()).spelling())?;
                 } else {
-                    let raw = format!("{}", klex::Token::Str(s.clone()).spelling());
-                    let raw = squash_whitespace(&raw);
-                    let wrapped_lines = textwrap::wrap(&raw, textwrap::Options::new(config.max_width).subsequent_indent(&gen_indent(current_indent + config.indent_amount, config)));
+                    let mut raw_str = format!("{}", klex::Token::Str(s.clone()).spelling());
+                    raw_str = squash_whitespace(&raw_str);
+                    let wrapped_lines = textwrap::wrap(&raw_str, textwrap::Options::new(config.max_width).subsequent_indent(&gen_indent(current_indent + config.indent_amount, config)));
                     for (i, line) in wrapped_lines.iter().enumerate() {
                         if i == wrapped_lines.len() - 1 {
                             write!(buf, "{line}")?;

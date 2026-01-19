@@ -62,7 +62,7 @@ mod tests {
 
     #[test]
     fn single_value_str() {
-        assert_eq!(parse_str("\"hello\""), Ok(Value::Str("hello".into())));
+        assert_eq!(parse_str("\"hello\""), Ok(Value::Str{ s: "hello".into(), raw: false }));
     }
 
     #[test]
@@ -88,7 +88,7 @@ mod tests {
         assert_eq!(parse_str("{pi: 3.14}"), Ok(a));
         let b = Value::Obj(HashMap::from([(
             String::from("name"),
-            Value::Str(String::from("gon")),
+            Value::Str{ s: "gon".into(), raw: false },
         )]));
         assert_eq!(
             parse_str("  {\n    name:\n\t\"gon\"\n\n\n\t\t}"),
@@ -111,19 +111,19 @@ mod tests {
     #[test]
     fn many_values() {
         let name = Value::Obj(HashMap::from([
-            (String::from("first"), Value::Str(String::from("John"))),
-            (String::from("last"), Value::Str(String::from("Doe"))),
+            (String::from("first"), Value::Str{ s: "John".into(), raw: false }),
+            (String::from("last"), Value::Str{ s: "Doe".into(), raw: false }),
         ]));
         let address = Value::Obj(HashMap::from([
-            (String::from("street"), Value::Str(String::from("Wood Way"))),
+            (String::from("street"), Value::Str{ s: "Wood Way".into(), raw: false }),
             (String::from("house"), Value::Num(String::from("-9_000"))),
         ]));
         let friends = Value::List(vec![
             Value::Obj(HashMap::from([
-                (String::from("name"), Value::Str(String::from("Alice"))),
+                (String::from("name"), Value::Str{ s: "Alice".into(), raw: false }),
             ])),
             Value::Obj(HashMap::from([
-                (String::from("name"), Value::Str(String::from("Bob"))),
+                (String::from("name"), Value::Str{ s: "Bob".into(), raw: false }),
             ])),
         ]);
         let obj = Value::Obj(HashMap::from([

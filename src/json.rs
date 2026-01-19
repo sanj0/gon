@@ -15,7 +15,7 @@ impl From<Value> for JsonValue {
                     JsonValue::Number(serde_json::Number::from_f64(value.as_f64().unwrap()).unwrap())
                 }
             }
-            Value::Str(s) => JsonValue::String(s),
+            Value::Str { s, raw: _ } => JsonValue::String(s),
             Value::List(xs) => JsonValue::Array(xs.into_iter().map(Value::into).collect()),
             Value::Obj(obj) => {
                 JsonValue::Object(obj.into_iter().map(|(k, v)| (k, v.into())).collect())
@@ -31,7 +31,7 @@ impl From<JsonValue> for Value {
             JsonValue::Bool(b) => Value::Bool(b),
             // FIXME
             JsonValue::Number(n) => Value::Num(n.to_string()),
-            JsonValue::String(s) => Value::Str(s),
+            JsonValue::String(s) => Value::Str {s, raw: true},
             JsonValue::Array(xs) => Value::List(xs.into_iter().map(JsonValue::into).collect()),
             JsonValue::Object(obj) => {
                 Value::Obj(obj.into_iter().map(|(k, v)| (k, v.into())).collect())

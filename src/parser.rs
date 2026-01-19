@@ -44,11 +44,17 @@ fn next_value(tokens: &mut TokenIter) -> Result<Value, GonError> {
                 Ok(Value::Bool(true))
             } else if sym_lower == "false" {
                 Ok(Value::Bool(false))
+            } else if sym_lower == "r" {
+                if let Some(Token::Str(string)) = tokens.peek().map(|rt| &rt.inner) {
+                    Ok(Value::Str { s: string.to_owned(), raw: true })
+                } else {
+                    Err(GonError::InvalidValue(sym, first_token.loc))
+                }
             } else {
                 Err(GonError::InvalidValue(sym, first_token.loc))
             }
         }
-        Token::Str(string) => Ok(Value::Str(string)),
+        Token::Str(string) => Ok(Value::Str { s: string, raw: false }),
         Token::Num(num) => Ok(Value::Num(num)),
         Token::LBrace => {
             let mut map = crate::MapT::new();
