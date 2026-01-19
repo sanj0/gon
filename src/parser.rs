@@ -46,7 +46,9 @@ fn next_value(tokens: &mut TokenIter) -> Result<Value, GonError> {
                 Ok(Value::Bool(false))
             } else if sym_lower == "r" {
                 if let Some(Token::Str(string)) = tokens.peek().map(|rt| &rt.inner) {
-                    Ok(Value::Str { s: string.to_owned(), raw: true })
+                    let value = Value::Str { s: string.to_owned(), raw: true };
+                    tokens.next();
+                    Ok(value)
                 } else {
                     Err(GonError::InvalidValue(sym, first_token.loc))
                 }
