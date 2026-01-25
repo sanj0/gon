@@ -12,9 +12,9 @@ use klex::{Loc, Token};
 use thiserror::Error;
 
 #[cfg(feature = "preserve_order")]
-type MapT = indexmap::IndexMap<String, Value>;
+pub type MapT = indexmap::IndexMap<String, Value>;
 #[cfg(not(feature = "preserve_order"))]
-type MapT = HashMap<String, Value>;
+pub type MapT = HashMap<String, Value>;
 
 #[derive(Debug, Error, PartialEq)]
 pub enum GonError {
