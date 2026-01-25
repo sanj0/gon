@@ -1,9 +1,11 @@
+#[cfg(feature = "json")]
 use serde_json::Value as JsonValue;
 
 use gon::*;
 
 fn main() -> Result<(), String> {
     let mut input = String::new();
+    #[cfg(feature = "json")]
     loop {
         std::io::stdin().read_line(&mut input);
         let value_res = parse(input.trim().chars());
@@ -15,4 +17,5 @@ fn main() -> Result<(), String> {
         }
         input.clear();
     }
+    Ok(())
 }
