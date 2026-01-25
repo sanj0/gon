@@ -163,7 +163,7 @@ checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
 [[package]]
 name = "klex"
 version = "0.1.0"
-source = "git+https://www.github.com/***REMOVED***/klex?branch=main#874620a855c4835725400ea2c5196f8790b9a46e"
+source = "git+https://www.github.com/speicherwerk/klex?branch=main#62e0b34b207bd7749dcf0a3c1b838df5cca26301"
 dependencies = [
  "thiserror 1.0.69",
 ]
