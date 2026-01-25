@@ -58,6 +58,13 @@ fn next_value(tokens: &mut TokenIter) -> Result<Value, GonError> {
         }
         Token::Str(string) => Ok(Value::Str { s: string, raw: false }),
         Token::Num(num) => Ok(Value::Num(num)),
+        Token::Dash => if let Some(Token::Num(ns)) = tokens.peek().map(|t| &t.inner) {
+            let value = Value::Num(format!("-{ns}"));
+            tokens.next();
+            Ok(value)
+        } else {
+            Err(GonError::UnexpectedToken(Token::Dash, first_token.loc))
+        }
         Token::LBrace => {
             let mut map = crate::MapT::new();
             let opening_loc = tokens.loc;
