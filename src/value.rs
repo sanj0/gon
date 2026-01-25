@@ -12,10 +12,7 @@ pub enum Value {
     /// # Grammar
     /// `Str = ( "r" | "R" )? STR_LIT ;` (where STR_LIT is whatever `klex` tokenizes as a string)
     /// Arbitrary whitespace may be between the r and the string literal.
-    Str {
-        s: String,
-        raw: bool,
-    },
+    Str { s: String, raw: bool },
     /// A number value.
     /// # Grammar
     /// `Num = NUM_LIT ;` (where NUM_LIT is whatever `klex` tokenizes as a number)
@@ -74,13 +71,21 @@ impl Value {
     pub fn min_spell(&self) -> String {
         match self {
             Self::None => "None".into(),
-            Self::Str { s, raw } => if *raw {
+            Self::Str { s, raw } => {
+                if *raw {
                     format!("r{}", klex::Token::Str(s.into()).spelling())
                 } else {
                     klex::Token::Str(s.into()).spelling()
                 }
+            }
             Self::Num(s) => s.into(),
-            Self::Bool(b) => if *b { "true".into() } else { "false".into() },
+            Self::Bool(b) => {
+                if *b {
+                    "true".into()
+                } else {
+                    "false".into()
+                }
+            }
             Self::Obj(m) => {
                 let mut spelling = String::from("{");
                 for (i, (k, v)) in m.iter().enumerate() {
@@ -121,7 +126,12 @@ impl Value {
         Ok(buf)
     }
 
-    fn spell0(&self, buf: &mut String, current_indent: usize, config: &SpellConfig) -> std::fmt::Result {
+    fn spell0(
+        &self,
+        buf: &mut String,
+        current_indent: usize,
+        config: &SpellConfig,
+    ) -> std::fmt::Result {
         match self {
             Self::None => write!(buf, "None")?,
             Self::Str { s, raw } => {
@@ -132,7 +142,13 @@ impl Value {
                 } else {
                     let mut raw_str = format!("{}", klex::Token::Str(s.clone()).spelling());
                     raw_str = squash_whitespace(&raw_str);
-                    let wrapped_lines = textwrap::wrap(&raw_str, textwrap::Options::new(config.max_width).subsequent_indent(&gen_indent(current_indent + config.indent_amount, config)));
+                    let wrapped_lines = textwrap::wrap(
+                        &raw_str,
+                        textwrap::Options::new(config.max_width).subsequent_indent(&gen_indent(
+                            current_indent + config.indent_amount,
+                            config,
+                        )),
+                    );
                     for (i, line) in wrapped_lines.iter().enumerate() {
                         if i == wrapped_lines.len() - 1 {
                             write!(buf, "{line}")?;
@@ -169,7 +185,11 @@ impl Value {
                     write!(buf, "[]")?;
                     break 'match_arm;
                 }
-                let oneline = xs.len() <= 5 && xs.iter().find(|v| matches!(v, Self::List(_) | Self::Obj(_))).is_none();
+                let oneline = xs.len() <= 5
+                    && xs
+                        .iter()
+                        .find(|v| matches!(v, Self::List(_) | Self::Obj(_)))
+                        .is_none();
                 if oneline {
                     write!(buf, "[")?;
                 } else {
@@ -214,7 +234,9 @@ fn apply_indent(buf: &mut String, amount: usize, config: &SpellConfig) -> std::f
 }
 
 fn gen_indent(amount: usize, config: &SpellConfig) -> String {
-    std::iter::repeat(config.indent_char).take(amount).collect::<String>()
+    std::iter::repeat(config.indent_char)
+        .take(amount)
+        .collect::<String>()
 }
 
 fn key_needs_quoting(key: &str) -> bool {

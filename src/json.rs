@@ -12,7 +12,9 @@ impl From<Value> for JsonValue {
                 if let Some(n) = value.as_i128() {
                     JsonValue::Number(serde_json::Number::from_i128(n).unwrap())
                 } else {
-                    JsonValue::Number(serde_json::Number::from_f64(value.as_f64().unwrap()).unwrap())
+                    JsonValue::Number(
+                        serde_json::Number::from_f64(value.as_f64().unwrap()).unwrap(),
+                    )
                 }
             }
             Value::Str { s, raw: _ } => JsonValue::String(s),
@@ -31,7 +33,7 @@ impl From<JsonValue> for Value {
             JsonValue::Bool(b) => Value::Bool(b),
             // FIXME
             JsonValue::Number(n) => Value::Num(n.to_string()),
-            JsonValue::String(s) => Value::Str {s, raw: true},
+            JsonValue::String(s) => Value::Str { s, raw: true },
             JsonValue::Array(xs) => Value::List(xs.into_iter().map(JsonValue::into).collect()),
             JsonValue::Object(obj) => {
                 Value::Obj(obj.into_iter().map(|(k, v)| (k, v.into())).collect())

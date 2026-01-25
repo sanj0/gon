@@ -7,7 +7,7 @@ pub mod parser;
 pub mod value;
 
 pub use parser::{parse, parse_str};
-pub use value::{List, Object, Value, SpellConfig};
+pub use value::{List, Object, SpellConfig, Value};
 
 use std::collections::HashMap;
 
@@ -74,7 +74,13 @@ mod tests {
 
     #[test]
     fn single_value_str() {
-        assert_eq!(parse_str("\"hello\""), Ok(Value::Str{ s: "hello".into(), raw: false }));
+        assert_eq!(
+            parse_str("\"hello\""),
+            Ok(Value::Str {
+                s: "hello".into(),
+                raw: false
+            })
+        );
     }
 
     #[test]
@@ -100,12 +106,12 @@ mod tests {
         assert_eq!(parse_str("{pi: 3.14}"), Ok(a));
         let b = Value::Obj(HashMap::from([(
             String::from("name"),
-            Value::Str{ s: "gon".into(), raw: false },
+            Value::Str {
+                s: "gon".into(),
+                raw: false,
+            },
         )]));
-        assert_eq!(
-            parse_str("  {\n    name:\n\t\"gon\"\n\n\n\t\t}"),
-            Ok(b)
-        );
+        assert_eq!(parse_str("  {\n    name:\n\t\"gon\"\n\n\n\t\t}"), Ok(b));
     }
     #[test]
     fn single_value_list() {
@@ -123,20 +129,46 @@ mod tests {
     #[test]
     fn many_values() {
         let name = Value::Obj(HashMap::from([
-            (String::from("first"), Value::Str{ s: "John".into(), raw: false }),
-            (String::from("last"), Value::Str{ s: "Doe".into(), raw: false }),
+            (
+                String::from("first"),
+                Value::Str {
+                    s: "John".into(),
+                    raw: false,
+                },
+            ),
+            (
+                String::from("last"),
+                Value::Str {
+                    s: "Doe".into(),
+                    raw: false,
+                },
+            ),
         ]));
         let address = Value::Obj(HashMap::from([
-            (String::from("street"), Value::Str{ s: "Wood Way".into(), raw: false }),
+            (
+                String::from("street"),
+                Value::Str {
+                    s: "Wood Way".into(),
+                    raw: false,
+                },
+            ),
             (String::from("house"), Value::Num(String::from("-9_000"))),
         ]));
         let friends = Value::List(vec![
-            Value::Obj(HashMap::from([
-                (String::from("name"), Value::Str{ s: "Alice".into(), raw: false }),
-            ])),
-            Value::Obj(HashMap::from([
-                (String::from("name"), Value::Str{ s: "Bob".into(), raw: false }),
-            ])),
+            Value::Obj(HashMap::from([(
+                String::from("name"),
+                Value::Str {
+                    s: "Alice".into(),
+                    raw: false,
+                },
+            )])),
+            Value::Obj(HashMap::from([(
+                String::from("name"),
+                Value::Str {
+                    s: "Bob".into(),
+                    raw: false,
+                },
+            )])),
         ]);
         let obj = Value::Obj(HashMap::from([
             (String::from("id"), Value::Num(String::from("456"))),

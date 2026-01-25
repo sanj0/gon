@@ -1,7 +1,7 @@
 use std::error::Error;
-use std::path::PathBuf;
-use std::io::Read;
 use std::fs::File;
+use std::io::Read;
+use std::path::PathBuf;
 
 use clap::Parser;
 use serde_json::Value as JsonValue;
@@ -59,7 +59,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Verb::Min => {
             let value = get_gon_input(args.file.as_ref().cloned())?;
             print_or_write_to_file(&value.min_spell(), args.file)?;
-        },
+        }
         Verb::Fmt => {
             let value = get_gon_input(args.file.as_ref().cloned())?;
             let spell_config = SpellConfig {
@@ -72,7 +72,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         Verb::Into => {
             let value = get_gon_input(args.file)?;
-            println!("{}", serde_json::to_string_pretty(&serde_json::Value::from(value)).map_err(|e| Box::new(e))?);
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&serde_json::Value::from(value))
+                    .map_err(|e| Box::new(e))?
+            );
         }
         Verb::From => {
             let json = get_json_input(args.file)?;
@@ -84,18 +88,16 @@ fn main() -> Result<(), Box<dyn Error>> {
             };
             println!("{}", Value::from(json).spell(spell_config)?);
         }
-        Verb::Verify => {
-            match get_gon_input(args.file) {
-                Ok(value) => {
-                    println!("VALID");
-                    return Ok(());
-                }
-                Err(e) => {
-                    println!("INVALID");
-                    return Err(e);
-                }
+        Verb::Verify => match get_gon_input(args.file) {
+            Ok(value) => {
+                println!("VALID");
+                return Ok(());
             }
-        }
+            Err(e) => {
+                println!("INVALID");
+                return Err(e);
+            }
+        },
     }
     Ok(())
 }
@@ -115,7 +117,9 @@ fn get_src(file: Option<PathBuf>) -> Result<String, Box<dyn Error>> {
         std::io::read_to_string(file).map_err(|e| Box::new(e))?
     } else {
         let mut input = Vec::new();
-        std::io::stdin().read_to_end(&mut input).map_err(|e| Box::new(e))?;
+        std::io::stdin()
+            .read_to_end(&mut input)
+            .map_err(|e| Box::new(e))?;
         String::from_utf8(input).map_err(|e| Box::new(e))?
     };
     Ok(src)
