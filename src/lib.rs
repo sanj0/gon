@@ -32,8 +32,6 @@ pub enum GonError {
     MissingColon(String, Loc),
     #[error("missing value after '{0}:' at {1}")]
     MissingValue(String, Loc),
-    #[error("missing comma at {0}")]
-    MissingComma(Loc),
     #[error("unclosed delimiter: missing '{0:?}' which was opened at {1}")]
     UnclosedDelimiter(char, Loc),
     #[error("leftover tokens starting with '{0:?}' at {1}")]

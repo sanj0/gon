@@ -94,15 +94,6 @@ fn next_value(tokens: &mut TokenIter) -> Result<Value, GonError> {
     }
 }
 
-fn consume_required_comma(tokens: &mut TokenIter) -> Result<(), GonError> {
-    if let Some(rt) = tokens.next() {
-        if matches![rt.inner, Token::Comma] {
-            return Ok(());
-        }
-    }
-    Err(GonError::MissingComma(tokens.loc))
-}
-
 fn consume_optional_comma(tokens: &mut TokenIter) {
     if let Some(rt) = tokens.peek() {
         if matches![rt.inner, Token::Comma] {
