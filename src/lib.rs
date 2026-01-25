@@ -1,3 +1,6 @@
+///! Parser for a simple JSON-like format that doesn't require quotes around keys and
+///! allows trailing commas (but requires non at all).
+
 #[cfg(feature = "json")]
 pub mod json;
 pub mod parser;
@@ -11,29 +14,40 @@ use std::collections::HashMap;
 use klex::{Loc, Token};
 use thiserror::Error;
 
+/// The map type when the `preserve_order` feature is on
 #[cfg(feature = "preserve_order")]
 pub type MapT = indexmap::IndexMap<String, Value>;
+/// The map type when the `preserve_order` feature is off
 #[cfg(not(feature = "preserve_order"))]
 pub type MapT = HashMap<String, Value>;
 
+/// Something went wrong?!
 #[derive(Debug, Error, PartialEq)]
 pub enum GonError {
+    /// An error from the tokenizer `klex`
     #[error("couldn't tokenize")]
     LexerErr(#[from] klex::KlexError),
+    /// Attempted to parse the empty string
     #[error("no value present")]
     NoValueErr,
+    /// An invalid value
     #[error(
         "invalid value: '{0}' at {1}\n\tExpected one of: None, \"...\", <number>, true/false, [values], {{key: value}}"
     )]
     InvalidValue(String, Loc),
+    /// An unexpected token
     #[error("unexpected token: '{0:?}' at {1}")]
     UnexpectedToken(Token, Loc),
+    /// A missing : after an object key
     #[error("missing colon : after key '{0}' at {1}")]
     MissingColon(String, Loc),
+    /// A key within an object without a value
     #[error("missing value after '{0}:' at {1}")]
     MissingValue(String, Loc),
+    /// A delimiter wasn't closed
     #[error("unclosed delimiter: missing '{0:?}' which was opened at {1}")]
     UnclosedDelimiter(char, Loc),
+    /// There are leftover tokens after parsing everything
     #[error("leftover tokens starting with '{0:?}' at {1}")]
     LeftoverTokens(Token, Loc),
 }

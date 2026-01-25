@@ -9,10 +9,38 @@ struct TokenIter {
     loc: Loc,
 }
 
+/// Try to parse the given `&str` into a gon [`Value`]. This is just a short-hand:
+/// `parse_str(s) = parse(s.chars())`. See [`parse`].
+/// # Usage example
+/// ```rust
+/// use gon::{parse_str, Value};
+/// let src = "[1, 2, 3]";
+/// assert_eq!(
+///     Ok(Value::List(vec![
+///         Value::Num(1.to_string()),
+///         Value::Num(2.to_string()),
+///         Value::Num(3.to_string()),
+///     ])),
+///     parse_str(src),
+/// );
+/// ```
 pub fn parse_str(src: &str) -> Result<Value, GonError> {
     parse(src.chars())
 }
 
+/// Try to parse the given char iterator into a gon [`Value`].
+/// # Usage example
+/// ```rust
+/// use gon::{MapT, parse, Value};
+/// let src = "{a: 1, b: []}".chars();
+/// assert_eq!(
+///     Ok(Value::Obj(MapT::from([
+///         ("a".to_string(), Value::Num(1.to_string())),
+///         ("b".to_string(), Value::List(vec![])),
+///     ]))),
+///     parse(src),
+/// );
+/// ```
 pub fn parse<I: Iterator<Item = char>>(src: I) -> Result<Value, GonError> {
     let tokens = Lexer::from_iter(src, 0)
         .lex()

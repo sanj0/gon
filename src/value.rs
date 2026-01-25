@@ -1,15 +1,37 @@
 use std::fmt::Write;
 
+/// A gon value
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Value {
+    /// None, akin to JSON null.
+    /// # Grammar
+    /// `None = "null" | "none" ;` (case insensitive)
     None,
+    /// A string in double quotes. Writing `r` or `R` in front of it turns it into
+    /// a "raw" string which tells the formatter not to put line breaks when spelling.
+    /// # Grammar
+    /// `Str = ( "r" | "R" )? STR_LIT ;` (where STR_LIT is whatever `klex` tokenizes as a string)
+    /// Arbitrary whitespace may be between the r and the string literal.
     Str {
         s: String,
         raw: bool,
     },
+    /// A number value.
+    /// # Grammar
+    /// `Num = NUM_LIT ;` (where NUM_LIT is whatever `klex` tokenizes as a number)
     Num(String),
+    /// A boolean value.
+    /// # Grammar
+    /// `Bool = "true" | "false" ;` (case insensitive)
     Bool(bool),
+    /// An object (key-value) value.
+    /// # Grammar
+    /// `Obj = "{" ( KeyValue ","? )*  "}" ;`
+    /// `KeyValue = SYM_LIT ":" Value ;` (where SYM_LIT is whatever `klex` parses as a symbol)
     Obj(crate::MapT),
+    /// A list value.
+    /// # Grammar
+    /// `List = "[" ( Value ","? )* "]" ;`
     List(Vec<Value>),
 }
 
@@ -23,7 +45,7 @@ pub struct List {
     inner: Vec<Value>,
 }
 
-/// Configures how a `Value` should be [`spell`]ed
+/// Configures how a `Value` should be [Value::spell]ed
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct SpellConfig {
     pub indent_amount: usize,
